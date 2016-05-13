@@ -1,0 +1,49 @@
+= skip
+
+Skippy McSkipface - A general Clojure dependency tracker.
+
+Lisp systems are especially suited to develop systems which must or can run indefinitely, where all changes are 'continuously delivered' as a series of patches. If you feel annoyed by your Clojure systems slow start up time, you might just being 'doing it all wrong'.
+
+Skip allows us to avoid waste by eliminating unnecessary work that a system might otherwise perform in order to bring itself up-to-date.
+
+You can use skip to create dependency graphs, mixing together files, templates, build artefacts, config, namespaces, components and other resources.
+
+Dependency resolvers are supplied for common cases.
+
+== Axioms
+
+A *dependency* has a *status*: *fresh*, if it is up-to-date, or *stale* otherwise.
+
+A *dependant* depends on the status of its dependencies.
+
+A dependant can be a dependency of other dependants.
+
+Each dependant can report its status.
+
+A dependant is stale if any of its dependencies are stale.
+
+Dependants can be *freshened*, which usually involves doing *work*.
+
+A dependant that is already fresh doesn't need to be freshened. Work is avoided (skipped).
+
+The act of freshening a dependant might cause that dependant to change, so it is returned as a value.
+
+Each dependant can *explain* what it would do were it be asked to freshen itself.
+
+== Installation
+
+Add the following dependency to your +project.clj+ or +build.boot+ file
+
+image::http://clojars.org/skip/latest-version.svg[]
+
+== Copyright & License
+
+The MIT License (MIT)
+
+Copyright © 2016 JUXT LTD.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
