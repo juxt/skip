@@ -28,7 +28,7 @@ A dependant that is already fresh doesn't need to be freshened. Work is avoided 
 
 The act of freshening a dependant might cause that dependant to change, so it is returned as a value.
 
-Each dependant can *explain* what it would do were it be asked to freshen itself.
+Each dependant can *explain* what it would do were it to be asked to freshen itself.
 
 == Installation
 
