@@ -2,7 +2,9 @@
 
 Skippy McSkipface - A general Clojure dependency tracker.
 
-Lisp systems are especially suited to develop systems which must or can run indefinitely, where all changes are 'continuously delivered' as a series of patches. If you feel annoyed by your Clojure systems slow start up time, you might just being 'doing it all wrong'.
+Lisp systems are especially suited to the development of  systems which must or can run indefinitely and where all changes are 'continuously delivered' as a series of patches.
+
+If you feel annoyed by your Clojure systems slow start up time, you might just being 'doing it all wrong'. You should keep reading.
 
 Skip allows us to avoid waste by eliminating unnecessary work that a system might otherwise perform in order to bring itself up-to-date.
 
@@ -22,13 +24,19 @@ Each dependant can report its status.
 
 A dependant is stale if any of its dependencies are stale.
 
-Dependants can be *freshened*, which usually involves doing *work*.
+Dependants can be *refreshed*, which usually involves doing *work*.
 
 A dependant that is already fresh doesn't need to be freshened. Work is avoided (skipped).
 
 The act of freshening a dependant might cause that dependant to change, so it is returned as a value.
 
 Each dependant can *explain* what it would do were it to be asked to freshen itself.
+
+The dependency tree can be derefed at any point in time to become a value. In this way, it begins to take on similarities with Om's app-state.
+
+All nodes in the tree can be *watched* by *watchers*.
+
+Changes to resources (e.g. files) that are otherwise outside the management of the system can be detected and notifications can be used to actively sync the app-state with these resources.
 
 == Installation
 
