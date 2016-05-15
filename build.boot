@@ -56,6 +56,7 @@ For example:
   []
   (comp (pom)
         (jar)
+        (target)
         (push :repo-map (repo-map "clojars")
               :file (format "target/%s-%s.jar" project version)
               ;;:gpg-sign (not (.endsWith +version+ "-SNAPSHOT"))
