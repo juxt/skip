@@ -8,7 +8,10 @@
       (when (and a b)
         (str a (inc (Long/parseLong b)))))))
 
-(defn deduce-version-from-git []
+(defn deduce-version-from-git
+  "Avoid another decade of pointless, unnecessary and error-prone
+  fiddling with version labels in source code."
+  []
   (let [[version commits hash dirty?]
         (next (re-matches #"(.*?)-(.*?)-(.*?)(-dirty)?\n"
                           (:out (sh/sh "git" "describe" "--dirty" "--long" "--tags" "--match" "[0-9].*"))))]
