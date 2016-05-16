@@ -1,7 +1,7 @@
 (ns skip.notify)
 
 (defprotocol INotify
-  (notify [_ ev] "Callback when file changes"))
+  (notify [_ ev] "Callback on state changes further down in the tree. Refresh the state of this record, as appropriate, being careful to handle any errors."))
 
 (extend-protocol INotify
   clojure.lang.Fn
@@ -29,10 +29,6 @@
 (prefer-method print-method clojure.lang.IPersistentMap clojure.lang.IDeref)
 
 (defmethod clojure.core/print-method Watchers
-  [watchers ^java.io.Writer writer]
-  (.write writer "#<Watchers>"))
-
-(defmethod clojure.core/print-dup Watchers
   [watchers ^java.io.Writer writer]
   (.write writer "#<Watchers>"))
 

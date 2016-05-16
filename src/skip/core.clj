@@ -36,12 +36,15 @@
     (conj this dependency)))
 
 (defprotocol ISkip
+  (error? [_] "Is the instance in an error state?")
   (stale? [_] "Is this thing stale, needing a refresh? If so, tell me why. Otherwise return nil.")
   (refresh! [_] "Refresh this thing so it isn't stale."))
 
 (defn ensure-fresh! [x]
-  (when (stale? x)
-    (refresh! x)))
+  (if-let [error (error? x)]
+    error
+    (when (stale? x)
+      (refresh! x))))
 
 (defprotocol IExplain
   (explain [_] "What evidence is there that this thing is stale?"))
@@ -57,9 +60,11 @@
 (defrecord Dependant [dependencies watchers]
   ISkip
   (stale? [this]
+    ;; TODO: First check if each dependency is in an error state
     (let [stale? (keep stale? (dependencies-seq dependencies))]
       (when (not-empty stale?) stale?)))
   (refresh! [this] nil)
+  (error? [_] nil)
 
   INotify
   (notify [this dependency]
@@ -99,6 +104,7 @@
       this))
   (refresh! [this]
     (reset! *last-modified (.lastModified file)))
+  (error? [this] nil)
 
   INotify
   (notify [this _]
@@ -107,6 +113,7 @@
     ;; to maintain freshness.
     #_(infof "FileProxy has detected a change in %s, should inform the %s watchers" file watchers)
     (refresh! this)
+    (infof "FileProxy for %s, notifying %d watchers" file (count watchers))
     (notify watchers this))
 
   IWatchable
