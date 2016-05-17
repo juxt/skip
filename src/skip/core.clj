@@ -97,13 +97,13 @@
 
 ;; A file can be fresh, then stale, then freshened
 
-(defrecord FileProxy [file *last-modified watchers]
+(defrecord FileProxy [file last-modified watchers]
   ISkip
   (stale? [this]
-    (when (< @*last-modified (.lastModified file))
+    (when (< @last-modified (.lastModified file))
       this))
   (refresh! [this]
-    (reset! *last-modified (.lastModified file)))
+    (reset! last-modified (.lastModified file)))
   (error? [this] nil)
 
   INotify
@@ -125,18 +125,18 @@
   clojure.lang.IDeref
   (deref [_]
     {:file file
-     :last-modified @*last-modified})
+     :last-modified @last-modified})
 
   IExplain
   (explain [this]
     (let [now (System/currentTimeMillis)
           actual (.lastModified file)]
-      {:time-since-loaded (- now @*last-modified)
+      {:time-since-loaded (- now @last-modified)
        :time-since-modified (- now actual)
        :message (format "%s was modified on %s since it was last loaded on %s"
                         file
                         (new java.util.Date actual)
-                        (new java.util.Date @*last-modified))})))
+                        (new java.util.Date @last-modified))})))
 
 (defn new-file-proxy [file & [watcher]]
   (let [file (io/file file)
