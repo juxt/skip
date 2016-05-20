@@ -1,7 +1,7 @@
 (ns skip.notify)
 
 (defprotocol INotify
-  (notify [_ ev] "Callback on state changes further down in the tree. Refresh the state of this record, as appropriate, being careful to handle any errors."))
+  (notify [_ ev] "Callback on state changes further down in the tree. Always update! the record first, then notify any watchers."))
 
 (extend-protocol INotify
   clojure.lang.Fn
@@ -12,7 +12,6 @@
   (unwatch [_ watcher] "Unregister an observer"))
 
 (defrecord Watchers [atm]
-  clojure.lang.IDeref
   INotify
   (notify [this ev]
     (doseq [w @atm]

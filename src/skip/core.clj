@@ -36,15 +36,9 @@
     (conj this dependency)))
 
 (defprotocol ISkip
-  (error? [_] "Is the instance in an error state?")
   (stale? [_] "Is this thing stale, needing a refresh? If so, tell me why. Otherwise return nil.")
-  (refresh! [_] "Refresh this thing so it isn't stale."))
-
-(defn ensure-fresh! [x]
-  (if-let [error (error? x)]
-    error
-    (when (stale? x)
-      (refresh! x))))
+  (update! [_] "This is stale. Update this thing such that a stale? would be false. Don't do anything with dependencies. If you do anything, return truthy - because of update! will be the last thing called by refresh! and needs to return a value to indicate something changed.")
+  (refresh! [_] "Call refresh! on all my dependencies. If anything was done, update! myself and return truthy, else return false."))
 
 (defprotocol IExplain
   (explain [_] "What evidence is there that this thing is stale?"))
@@ -60,15 +54,15 @@
 (defrecord Dependant [dependencies watchers]
   ISkip
   (stale? [this]
-    ;; TODO: First check if each dependency is in an error state
     (let [stale? (keep stale? (dependencies-seq dependencies))]
       (when (not-empty stale?) stale?)))
-  (refresh! [this] nil)
-  (error? [_] nil)
+  (update! [this] nil)
+  (refresh! [this]
+    (some refresh! dependencies))
 
   INotify
   (notify [this dependency]
-    (refresh! this)
+    (update! this)
     (notify watchers this))
 
   IWatchable
@@ -78,7 +72,9 @@
     (unwatch watchers watcher))
 
   clojure.lang.IDeref
-  (deref [_] (mapv deref dependencies))
+  (deref [this]
+    (refresh! this)
+    (mapv deref dependencies))
 
   IDependencies ; proxying, possible deprecated
   (add-dependency! [_ dependency]
@@ -102,18 +98,17 @@
   (stale? [this]
     (when (< @last-modified (.lastModified file))
       this))
-  (refresh! [this]
+
+  (update! [this]
     (reset! last-modified (.lastModified file)))
-  (error? [this] nil)
+
+  (refresh! [this]
+    (when (stale? this)
+      (update! this)))
 
   INotify
   (notify [this _]
-    ;; By default, the notification causes the watchers to be informed
-    ;; of a new instance of this record where work has been performed
-    ;; to maintain freshness.
-    #_(infof "FileProxy has detected a change in %s, should inform the %s watchers" file watchers)
-    (refresh! this)
-    (infof "FileProxy for %s, notifying %d watchers" file (count watchers))
+    (update! this)
     (notify watchers this))
 
   IWatchable
@@ -123,7 +118,8 @@
     (unwatch watchers watcher))
 
   clojure.lang.IDeref
-  (deref [_]
+  (deref [this]
+    (refresh! this)
     {:file file
      :last-modified @last-modified})
 
@@ -140,6 +136,6 @@
 
 (defn new-file-proxy [file & [watcher]]
   (let [file (io/file file)
-        fp (->FileProxy file (atom (.lastModified file)) (new-watchers))]
+        fp (->FileProxy file (atom 0) (new-watchers))]
     (when watcher (file-watcher/register! watcher fp))
     fp))
