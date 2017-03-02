@@ -24,7 +24,7 @@
 
 (def version (deduce-version-from-git))
 
-(set-env! :resource-paths #{"resources" "src"}
+(set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
           :dependencies   '[[org.clojure/clojure "RELEASE"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
