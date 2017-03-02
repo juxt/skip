@@ -1,8 +1,10 @@
 (ns skip.file-watcher
   (:require
-   [clojure.tools.logging :refer :all]
-   [com.stuartsierra.component :refer [Lifecycle]]
-   [skip.notify :refer [notify]]))
+    [skip.notify :refer [notify]])
+  (:import
+    java.nio.file.StandardWatchEventKinds
+    java.nio.file.ClosedWatchServiceException
+    java.nio.file.FileSystems))
 
 (defn register! [watcher file-proxy]
   (let [filepath (.toAbsolutePath (.toPath (:file file-proxy)))]
@@ -21,18 +23,17 @@
       (swap! (:fileproxies-by-filepath watcher) conj [(.toString filepath) file-proxy]))))
 
 (defn temp-file? [file]
-  (re-matches #"\.#.*" (.getName file)))
+    (re-matches #"\.#.*" (.getName file)))
 
-(defrecord FileWatcher [watch-service continue]
-  Lifecycle
-  (start [component]
-    (let [watch-service (.newWatchService (java.nio.file.FileSystems/getDefault))
-          dirpaths (atom #{})
-          dirpaths-by-watchkey (atom {})
-          fileproxies-by-filepath (atom {})
-          continue (atom true)
-          t (.start
-             (Thread.
+(defn start
+  []
+  (let [watch-service (.newWatchService (java.nio.file.FileSystems/getDefault))
+        dirpaths (atom #{})
+        dirpaths-by-watchkey (atom {})
+        fileproxies-by-filepath (atom {})
+        continue (atom true)
+        t (.start
+            (Thread.
               (fn []
                 (try
                   (while @continue
@@ -45,26 +46,25 @@
                                 (when-not (temp-file? (.toFile filepath))
                                   (when-let [file-proxy (get @fileproxies-by-filepath (.toString filepath))]
                                     (notify file-proxy :modify)))))
-                            (warnf "No dirpath registered for watch-key: %s" watch-key)))
+                            ;; TODO Figure out logging without a dependency
+                            (println "No dirpath registered for watch-key: %s" watch-key)))
                         (catch Exception e
-                          (errorf e "Exception")))
+                          ;; TODO Figure out logging without a dependency
+                          (println e)))
                       (let [valid (.reset watch-key)]
                         #_(if-not valid (swap! watch-keys dissoc watch-key)))))
                   (catch java.nio.file.ClosedWatchServiceException e
-                    (infof "Watch service closed, giving up on watcher thread")
-                    )))))]
-      (assoc component
-             :watch-service watch-service
-             :dirpaths dirpaths
-             :dirpaths-by-watchkey dirpaths-by-watchkey
-             :fileproxies-by-filepath fileproxies-by-filepath
-             :continue continue)))
-  (stop [component]
-    (when continue
-      (reset! continue false))
-    (when watch-service
-      (.close watch-service))
-    (dissoc component :watch-service :continue)))
+                    ;; TODO Figure out logging without a dependency
+                    (println "Watch service closed, giving up on watcher thread"))))))]
+    {:watch-service watch-service
+     :dirpaths dirpaths
+     :dirpaths-by-watchkey dirpaths-by-watchkey
+     :fileproxies-by-filepath fileproxies-by-filepath
+     :continue continue}))
 
-(defn new-file-watcher []
-  (map->FileWatcher {}))
+(defn stop
+  [{:keys [continue watch-service]}]
+  (when continue
+    (reset! continue false))
+  (when watch-service
+    (.close watch-service)))

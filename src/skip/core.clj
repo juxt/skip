@@ -2,8 +2,6 @@
 
 (ns skip.core
   (:require
-   [com.stuartsierra.component :refer [Lifecycle]]
-   [clojure.tools.logging :refer :all]
    [skip.notify :refer [INotify notify IWatchable watch unwatch new-watchers]]
    [skip.file-watcher :as file-watcher]
    [clojure.java.io :as io]))
