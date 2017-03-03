@@ -45,6 +45,7 @@
         (jar)
         (install)))
 
+(declare repo-map)
 (deftask deploy
   "Deploy the library. You need to add a repo-map function in your profile.boot that returns the url and credentials as a map.
 
